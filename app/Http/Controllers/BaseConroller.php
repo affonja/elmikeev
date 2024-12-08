@@ -41,6 +41,7 @@ class BaseConroller extends Controller
                 $partData[] = $item;
             }
             $this->model::insert($partData);
+
             $params['page']++;
         } while ($data['links']['next'] !== null);
 
