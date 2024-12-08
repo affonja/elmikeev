@@ -15,58 +15,42 @@ class ApiService
     const PORT = '6969';
     const API_KEY = 'E6kUTYrYwZq2tN4QEtyzsbEBk3ie';
 
-
     public function __construct(Client $client)
     {
         $this->client = $client;
     }
 
-    public function getData(string $url, array $params): array
+    public function getData(string $url, array $params): ?array
     {
-        $allData = [];
-        $page = 1;
+        $queryParams = $this->buildQueryParams($params);
 
-        do {
-            $params['page'] = $page;
-            $queryParams = $this->buildQueryParams($params);
+        try {
+            $response = $this->sendRequest($url, $queryParams);
+            $data = $this->processResponse($response);
+        } catch (Exception $e) {
+            throw new Exception("Ошибка: " . $e->getMessage());
+        }
 
-            try {
-                $response = $this->sendRequest($url, $queryParams);
-                $data = $this->processResponse($response);
-
-                if (isset($data['data'])) {
-                    $allData = array_merge($allData, $data['data']);
-                }
-
-                $hasMorePages = isset($data['links']['next']);
-                $page++;
-            } catch (Exception $e) {
-                throw new Exception("Ошибка на странице {$page}: " . $e->getMessage());
-            }
-        } while ($hasMorePages);
-
-        return $allData;
+        if (isset($data['data'])) {
+            return $data;
+        }
+        return null;
     }
 
     public function buildQueryParams(array $params): array
     {
-//        return [
-//            'dateFrom' => $params['dateFrom'],
-//            'dateTo' => '',
-//            'page' => 1,
-//            'key' => self::API_KEY,
-//            'limit' => 1,
-//        ];
         $params['key'] = self::API_KEY;
         $params['limit'] = $params['limit'] ?? 500;
+        $params['page'] = $params['page'] ?? 1;
         return $params;
     }
 
     public function sendRequest(string $url, array $params)
     {
-        $response = $this->client->get(self::PROTOCOL . self::HOST . ':' . self::PORT . $url, [
+        $response = $this->client->request($params['method'], self::PROTOCOL . self::HOST . ':' . self::PORT . $url, [
             'query' => $params,
         ]);
+
         if ($response->getStatusCode() !== self::HTTP_OK) {
             throw new Exception('Ошибка запроса: ' . $response->getStatusCode());
         }
@@ -84,6 +68,4 @@ class ApiService
 
         return $data;
     }
-
-
 }
