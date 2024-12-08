@@ -8,5 +8,5 @@ use App\Models\Stock;
 class StockController extends BaseConroller
 {
     protected $model = Stock::class;
-    protected $url = '/api/stocks';
+    protected $endpoint = '/api/stocks';
 }

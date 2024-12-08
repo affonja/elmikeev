@@ -7,5 +7,5 @@ use App\Models\Order;
 class OrderController extends BaseConroller
 {
     protected $model = Order::class;
-    protected $url = '/api/orders';
+    protected $endpoint = '/api/orders';
 }

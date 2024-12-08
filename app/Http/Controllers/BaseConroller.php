@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class BaseConroller extends Controller
 {
-    protected $url;
+    protected $endpoint;
     protected $apiService;
     protected $model;
 
@@ -31,13 +31,16 @@ class BaseConroller extends Controller
         ]);
 
         do {
-            $data = $this->apiService->getData($this->url, $params);
+            $data = $this->apiService->getData($this->endpoint, $params);
             if ($data === null) {
                 return response()->json(['message' => 'upload error'], 500);
             }
+
+            $partData = [];
             foreach ($data['data'] as $item) {
-                $this->model::updateOrCreate($item);
+                $partData[] = $item;
             }
+            $this->model::insert($partData);
             $params['page']++;
         } while ($data['links']['next'] !== null);
 
